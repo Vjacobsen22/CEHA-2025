@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CEHA Puzzle Hunt</title>
+<style>
+  body {font-family: Arial, sans-serif; background:#f4f4f4; text-align:center; padding:20px;}
+  h1 {color:#2c3e50;}
+  .puzzle {display:grid; grid-template-columns:repeat(5,1fr); gap:5px; max-width:1000px; margin:20px auto;}
+  .piece {width:100%; padding-bottom:100%; background:#ccc; position:relative; border-radius:6px; overflow:hidden;}
+  .piece img {position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none;}
+  .piece.revealed img {display:block;}
+  #congrats {display:none; margin-top:20px; font-size:1.5em; color:green;}
+  .helper {max-width:800px; margin:0 auto; color:#34495e;}
+</style></head>
+<body>
+<h1>CEHA Exhibitor Puzzle Hunt</h1>
+<p class="helper">Scan the QR code at each exhibitor table to unlock a tile. Collect all 10 pieces to reveal the full CEHA logo.</p>
+<div class="puzzle" id="puzzle"></div>
+<div id="congrats">🎉 Congratulations! You've completed the CEHA puzzle! Show this screen at Registration to enter the drawing. 🎉</div>
+<script>
+const totalPieces = 10;
+const puzzle = document.getElementById('puzzle');
+for (let i=0; i<totalPieces; i++){const d=document.createElement('div');d.className='piece';const img=document.createElement('img');img.src='pieces/piece_'+Math.floor(i/5)+'_'+(i%5)+'.png';img.alt='Puzzle piece '+i;d.appendChild(img);puzzle.appendChild(d);}
+const urlParams = new URLSearchParams(window.location.search);
+const pieceIndex = urlParams.get('piece');
+if (pieceIndex !== null){const idx=parseInt(pieceIndex);const div=puzzle.children[idx]; if(div) div.classList.add('revealed');}
+const key='ceha_puzzle_revealed'; const saved=JSON.parse(localStorage.getItem(key)||'[]');
+saved.forEach(i=>{const d=puzzle.children[i]; if(d) d.classList.add('revealed');});
+if (pieceIndex !== null && !saved.includes(parseInt(pieceIndex))){saved.push(parseInt(pieceIndex)); localStorage.setItem(key, JSON.stringify(saved));}
+function checkCompletion(){const revealed=document.querySelectorAll('.piece.revealed').length; if(revealed===totalPieces){document.getElementById('congrats').style.display='block';}}
+checkCompletion();
+</script>
+</body></html>
