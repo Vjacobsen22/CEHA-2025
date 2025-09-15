@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEHA Puzzle Hunt</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; text-align: center; padding: 20px; }
+    h1 { color: #1f2937; margin-bottom: 0.3rem; }
+    p { color: #374151; margin-top: 0.2rem; }
+    .actions { margin: 12px 0 18px; }
+    button { border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; background: #e5e7eb; }
+    button:hover { background: #d1d5db; }
+    .puzzle { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 1000px; margin: 16px auto; }
+    .piece { width: 100%; padding-bottom: 100%; background: linear-gradient(135deg, #e5e7eb, #d1d5db); border-radius: 6px;
+             position: relative; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .piece img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+    .piece.revealed img { display: block; }
+    #congrats { display: none; margin-top: 18px; font-size: 1.25rem; color: #059669; font-weight: bold; }
+    .footer { color: #6b7280; font-size: 0.9rem; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <h1>CEHA Exhibitor Puzzle Hunt</h1>
+  <p>Scan QR codes at each exhibitor table to unlock the CEHA logo pieces.</p>
+
+  <div class="actions">
+    <button id="reset">Reset this device's progress</button>
+  </div>
+
+  <div class="puzzle" id="puzzle"></div>
+
+  <div id="congrats">🎉 Congratulations! You've completed the CEHA puzzle! Show this screen at registration to claim your prize. 🎉</div>
+
+  <div class="footer">Tip: Keep this page open as you visit tables. Each new scan adds a piece automatically.</div>
+
+  <script>
+    const rows = 2, cols = 5;
+    const totalPieces = rows * cols;
+    const STORAGE_KEY = 'ceha_unlocked_pieces_v1';
+
+    const puzzle = document.getElementById('puzzle');
+    for (let i = 0; i < totalPieces; i++) {
+      const r = Math.floor(i / cols);
+      const c = i % cols;
+      const div = document.createElement('div');
+      div.className = 'piece';
+      const img = document.createElement('img');
+      img.src = 'pieces/piece_' + r + '_' + c + '.png';
+      img.alt = 'Puzzle piece ' + (i + 1);
+      div.appendChild(img);
+      puzzle.appendChild(div);
+    }
+
+    function getUnlocked() {
+      try { const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return new Set();
+        return new Set(JSON.parse(raw));
+      } catch (e) { return new Set(); }
+    }
+    function saveUnlocked(set) { localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(set))); }
+
+    function render() {
+      const unlocked = getUnlocked();
+      for (let i = 0; i < totalPieces; i++) {
+        const div = puzzle.children[i];
+        if (unlocked.has(i)) div.classList.add('revealed');
+        else div.classList.remove('revealed');
+      }
+      if (unlocked.size === totalPieces) document.getElementById('congrats').style.display = 'block';
+      else document.getElementById('congrats').style.display = 'none';
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const pieceParam = params.get('piece');
+    if (pieceParam !== null) {
+      const idx = parseInt(pieceParam, 10);
+      if (!isNaN(idx) && idx >= 0 && idx < totalPieces) {
+        const unlocked = getUnlocked(); unlocked.add(idx); saveUnlocked(unlocked);
+      }
+    }
+
+    document.getElementById('reset').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY); render(); alert('Progress cleared on this device.');
+    });
+
+    render();
+  </script>
+</body>
+</html>
