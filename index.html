@@ -63,6 +63,53 @@
       }
     }
     checkCompletion();
-  </script>
+  </script><script>
+  const totalPieces = 10;
+  const puzzle = document.getElementById('puzzle');
+
+  // Build grid
+  for (let i = 0; i < totalPieces; i++) {
+    const div = document.createElement('div');
+    div.className = 'piece';
+    const img = document.createElement('img');
+    img.src = 'pieces/piece_' + Math.floor(i/5) + '_' + (i%5) + '.png';
+    div.appendChild(img);
+    puzzle.appendChild(div);
+  }
+
+  // Reveal piece from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const pieceIndex = urlParams.get('piece');
+  if (pieceIndex !== null) {
+    const idx = parseInt(pieceIndex);
+    const div = puzzle.children[idx];
+    if (div) div.classList.add('revealed');
+  }
+
+  // Save revealed pieces locally so they stick on refresh
+  const key = 'ceha_puzzle_revealed';
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  saved.forEach(i => {
+    const d = puzzle.children[i];
+    if (d) d.classList.add('revealed');
+  });
+  if (pieceIndex !== null && !saved.includes(parseInt(pieceIndex))) {
+    saved.push(parseInt(pieceIndex));
+    localStorage.setItem(key, JSON.stringify(saved));
+  }
+
+  // ✅ Check if puzzle is complete
+  function checkCompletion() {
+    const revealed = document.querySelectorAll('.piece.revealed').length;
+    if (revealed === totalPieces) {
+      document.getElementById('congrats').style.display = 'block';
+    }
+  }
+  checkCompletion();
+    <div id="congrats" style="display:none; font-size:20px; color:green; margin-top:20px;">
+  🎉 Congratulations! You've completed the CEHA puzzle! 🎉
+</div>
+</script>
+
 </body>
 </html>
